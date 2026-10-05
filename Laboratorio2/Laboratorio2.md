@@ -55,6 +55,23 @@ OK logrotate
 
 ![Verificación de herramientas](imagenes/01VerificacionHerramientas.png)
 
+```text
+OK curl
+FALTA docker-compose-v2
+OK rsync
+OK htop
+OK parted
+OK lvm
+OK lsof
+OK iostat
+OK nft
+OK ufw
+OK dig
+OK git
+OK crontab
+OK logrotate
+```
+
 ![Verificación de herramientas](imagenes/02VerificacionHerramientasError.png)
 
 
