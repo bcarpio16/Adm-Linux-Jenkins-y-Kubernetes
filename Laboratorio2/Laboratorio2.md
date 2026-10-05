@@ -7,7 +7,7 @@ Ejecutamos el siguiente comando
 </p>
 
 ```bash
-sudo apt install -y openssh-server acl tree etckeeper
+sudo apt install -y openssh-server acl tree etckeeper net-tools
 ```
 
 <p style="text-align: justify;">
@@ -17,6 +17,7 @@ Este comando instala herramientas esenciales para la administración de Linux:
 - **acl:** permite gestionar permisos de acceso avanzados mediante ACL. Incluye `getfacl` para consultar y `setfacl` para configurar las Listas de Control de Acceso. 
 - **tree:** muestra la estructura de directorios en forma de árbol.
 - **etckeeper:** permite controlar y registrar cambios realizados en la configuración del directorio /etc.
+- **net-tools:** 
 </p>
 
 ## Verificación de herramientas
@@ -33,9 +34,9 @@ Este comando recorre la lista de herramientas y utiliza command -v para comproba
 - OK: el comando está disponible.
 - FALTA: el comando no se encuentra instalado o no está disponible en el PATH.
 
-Resultado:
+### Resultados
 
-### Resultado esperado
+Ejecutado: OK
 
 ```text
 OK curl
@@ -54,6 +55,7 @@ OK logrotate
 ```
 
 ![Verificación de herramientas](imagenes/01VerificacionHerramientas.png)
+Ejecutado: FALTA
 
 ```text
 OK curl
@@ -73,6 +75,8 @@ OK logrotate
 ```
 
 ![Verificación de herramientas](imagenes/02VerificacionHerramientasError.png)
+
+### Verificación de Status
 
 
 
