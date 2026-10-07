@@ -1,9 +1,9 @@
-# Laboratorio 1 - Instalación y Configuración de Docker Nginx
+[# Laboratorio 1 - Instalación y Configuración de Docker Nginx
 
 Se va a realizar sobre ambas máquinas virtuales
 
 ## Máquina 1
-
+]([]())
 
 
 ```bash
