@@ -50,7 +50,7 @@ sudo vim app.py
 ```
 Agregamos el siguiente contenido
 
-```json
+```text
 from flask import Flask, jsonify
 import os
 import socket
