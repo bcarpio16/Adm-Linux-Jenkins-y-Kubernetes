@@ -276,33 +276,74 @@ sudo docker history api-institucional:1.0 --no-trunc | head
 
 ### Resultado
 
-```text
-head
-IMAGE                                                                     CREATED              CREATED BY                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   SIZE      COMMENT
-sha256:2a24d42d2f21fd9edc65d4e88c9dff1db4b42929a2e9e4c371e4d226264faeeb   About a minute ago   CMD ["python"                                                                                                                         "app.py"]                                                                                                    
-
-```
-
 ```text 
-IMAGE                                                                     CREATED              CREATED BY                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   SIZE      COMMENT
+IMAGE                                                                     CREATED              CREATED BY           SIZE      COMMENT
 sha256:2a24d42d2f21fd9edc65d4e88c9dff1db4b42929a2e9e4c371e4d226264faeeb   About a minute ago   CMD ["python" 
 ```
+
+Este comando permite revisar las diferentes capas utilizadas para construir la imagen.
+
+---
+
+## 9. Ejecución del contenedor
+
+<p style="text-align: justify;">
+Creamos y ejecutamos un contenedor utilizando la imagen construida anteriormente.
+</p>
+
 
 ```bash
 sudo docker run -d --name api-institucional-demo -p 5001:5000 -e APP_NEW=labunidad2 api-institucional:1.0
 ```
+### Descripción
 
-Resultado
+- **`-d`**: ejecuta el contenedor en segundo plano.
+- **`--name`**: asigna un nombre al contenedor.
+- **`-p 5001:5000`**: publica el puerto `5000` del contenedor en el puerto `5001` del servidor.
+- **`-e`**: establece una variable de entorno.
+- **`api-institucional:1.0`**: imagen utilizada para crear el contenedor.
+
+### Resultado
+
+```text
 2e0c58ae740311ceae6b831e34011375bd55116826163ce64aad0687e2105bb0
+```
 
+---
 
+## 10. Prueba de la API
 
+### Endpoint principal
 
+```bash
 curl http://localhost:5001/
-{"entorno":"laboratorio","host":"2e0c58ae7403","servicio":"api-institucional","version":"1.0"}
+```
 
+### Resultado
+
+```text
+{"entorno":"laboratorio","host":"2e0c58ae7403","servicio":"api-institucional","version":"1.0"}
+```
+
+### Endpoint de salud
+
+```bash
 curl http://localhost:5001/health
+```
+
+```resultado
 {"status":"ok"}
+```
+El endpoint `/health` permite comprobar rápidamente si la aplicación está respondiendo correctamente.
+
+---
+
+## 11. Verificación del estado del contenedor
+
+<p style="text-align: justify;">
+Esperamos unos segundos para que se ejecute el `HEALTHCHECK` y posteriormente verificamos el estado de salud y el usuario utilizado por el contenedor.
+</p>
+
 
 ```bash
 sleep 15
@@ -315,33 +356,64 @@ healthy
 Usuario=appuser
 ```
 
+El resultado confirma que el contenedor se encuentra saludable y que la aplicación se ejecuta con el usuario `appuser`, en lugar de utilizar `root`.
+
+---
+
+## 12. Verificación del contenedor
+
 ```bash
 sudo docker ps -a --filter name=api-institucional-demo
 ```
-Resultado 
+
+### Resultado
 
 ```text
 CONTAINER ID   IMAGE                   COMMAND           CREATED         STATUS                   PORTS                                         NAMES
 2e0c58ae7403   api-institucional:1.0   "python app.py"   4 minutes ago   Up 4 minutes (healthy)   0.0.0.0:5001->5000/tcp, [::]:5001->5000/tcp   api-institucional-demo
 ```
 
-Verificamos 
+La salida permite verificar el estado del contenedor, la imagen utilizada, los puertos publicados y el estado del `HEALTHCHECK`.
+
+---
+
+## 13. Verificación del endpoint de salud
 
 ```bash
 curl http://localhost:5001/health
 ```
+
+### Resultado
 ```text
 {"status":"ok"}
 ```
+---
 
+## 14. Verificación de la API y logs
 
+<p style="text-align: justify;">
+Realizamos nuevamente una prueba de la API y consultamos los logs del contenedor para comprobar las solicitudes recibidas por la aplicación.
+</p>
 
+```bash
+curl http://localhost:5001
+```
 
-adminepn@svr-devops01:~/u2-docker/api-institucional$
-adminepn@svr-devops01:~/u2-docker/api-institucional$ curl http://localhost:5001
+### Resultado
+
+```text
 {"entorno":"laboratorio","host":"2e0c58ae7403","servicio":"api-institucional","version":"1.0"}
-adminepn@svr-devops01:~/u2-docker/api-institucional$
-adminepn@svr-devops01:~/u2-docker/api-institucional$ sudo docker logs api-institucional-demo
+```
+
+Consultamos los registros del contenedor:
+
+```bash
+sudo docker logs api-institucional-demo
+```
+
+### Resultado
+
+```text
 * Serving Flask app 'app'
 * Debug mode: off
   WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
@@ -365,18 +437,44 @@ adminepn@svr-devops01:~/u2-docker/api-institucional$ sudo docker logs api-instit
   172.17.0.1 - - [07/Oct/2026 21:27:27] "GET /health HTTP/1.1" 200 -
   172.17.0.1 - - [07/Oct/2026 21:27:31] "GET / HTTP/1.1" 200 -
   127.0.0.1 - - [07/Oct/2026 21:27:46] "GET /health HTTP/1.1" 200 -
-  adminepn@svr-devops01:~/u2-docker/api-institucional$
+```
+Los logs permiten comprobar que Flask inició correctamente y que las solicitudes a `/` y `/health` fueron procesadas con código HTTP `200`.
 
+---
 
+## 15. Verificación del contenedor
+
+```bash
 sudo docker ps -a --filter name=api-institucional-demo
+```
+
+### Resultado
+
+```text
 CONTAINER ID   IMAGE                   COMMAND           CREATED         STATUS                   PORTS                                         NAMES
 2e0c58ae7403   api-institucional:1.0   "python app.py"   9 minutes ago   Up 9 minutes (healthy)   0.0.0.0:5001->5000/tcp, [::]:5001->5000/tcp   api-institucional-demo
+```
 
+---
 
+## 16. Prueba de conectividad interna
 
+<p style="text-align: justify;">
+Intentamos acceder al endpoint de salud directamente desde el interior del contenedor utilizando `wget`.
+</p>
 
+```bash
 sudo docker exec api-institucional-demo sh -c "wget -qO - http://localhost:5000/health"
+```
+### Resultado obtenido
+
+```text
 wget: can't connect to remote host: Connection refused
+```
+
+Este resultado corresponde a la prueba realizada durante el laboratorio. Posteriormente se debe revisar la causa de la conexión rechazada si se requiere validar el acceso interno mediante `wget`.
+
+---
 
 STACK multiconector de contenedores 
 
