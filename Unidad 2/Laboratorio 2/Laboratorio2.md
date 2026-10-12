@@ -476,28 +476,62 @@ Este resultado corresponde a la prueba realizada durante el laboratorio. Posteri
 
 ---
 
-STACK multiconector de contenedores 
+# 17. STACK multiconector de contenedores 
 
+## Creación de la estructura
 
+<p style="text-align: justify;">
+Creamos la estructura del proyecto que utilizará Docker Compose para desplegar varios servicios relacionados.
+</p>
+
+```bash
 cd /home/adminepn/u2-docker
 
 sudo mkdir -p ~/u2-docker/compose-institucional/api
 sudo mkdir -p ~/u2-docker/compose-institucional/web
+```
 
+Ingresamos al directorio del proyecto:
 
+```bash
 cd compose-institucional
+```
 
+---
+
+## 18. Creación de la página web
+
+<p style="text-align: justify;">
+Creamos una página HTML sencilla que será servida mediante Nginx.
+</p>
+
+```bash
 vim web/index.html
+```
 
+### Contenido
+
+```html
 <h1>Stack institucional DMQ con Docker Compose</h1>
 <p>Servicio web ejecutado en Nginx.</p>
 <p>API disponible en el puerto 5002 del host.</p>
+```
 
+---
 
+## 19. Configuración de Docker Compose
 
+<p style="text-align: justify;">
+Creamos el archivo `compose.yaml`, donde definimos los servicios de la aplicación, la red entre contenedores y el volumen utilizado por PostgreSQL.
+</p>
+
+```bash
 sudo vim compose.yaml
+```
 
-```text
+### Contenido
+
+```yaml
 name: stack-institucional
 
 services:
@@ -543,58 +577,227 @@ volumes:
 
 ```
 
-validamos el .yaml 
+### Descripción de los servicios
 
+- **api:** construye y ejecuta la API institucional.
+- **web:** utiliza Nginx para servir la página HTML.
+- **db:** utiliza PostgreSQL como base de datos.
+- **front:** red utilizada para la comunicación entre los servicios que necesitan acceso frontal.
+- **back:** red utilizada para la comunicación con la base de datos.
+- **db_data:** volumen persistente utilizado por PostgreSQL.
 
+---
+
+## 20. Validación del archivo Compose
+
+<p style="text-align: justify;">
+Validamos la configuración de Docker Compose antes de levantar los servicios.
+</p>
+
+```bash
 docker compose config
+```
+
+### Resultado
+
+```json
 name: stack-institucional
 services:
-api:
+  api:
+    environment:
+      APP_ENV: compose-lab
+```
 
-Copiamos el dockerfile 
+El comando permite validar y mostrar la configuración final que utilizará Docker Compose.
 
+---
+
+## 21. Copia del Dockerfile y archivos de la API
+
+<p style="text-align: justify;">
+Copiamos los archivos de la aplicación creada anteriormente al directorio utilizado por Docker Compose para construir el servicio `api`.
+</p>
+
+```bash
 cp -a ~/u2-docker/api-institucional/. ~/u2-docker/compose-institucional/api/
+```
 
+## 22. Levantamiento del stack
 
-levantarmos el servicio 
+<p style="text-align: justify;">
+Levantamos todos los servicios definidos en `compose.yaml` y construimos la imagen de la API cuando sea necesario.
+</p>
 
+```bash
 sudo docker compose up -d --build
-[+] up 0/1
-⠋ Image postgres:16-alpine Pulling                       
+```
 
-sudo docker compose up -d --build
+### Resultado
+```text
 [+] Building 2.0s (12/12) FINISHED
-=> [internal] load local bake definitions
-=> => reading from stdin 566B
+ => [internal] load local bake definitions
+ => => reading from stdin 566B
+ => [internal] load build definition from Dockerfile
 
+...
 
+[+] up 7/7
+ ✔ Image api-institucional:compose     Built
+ ✔ Network stack-institucional_back    Created
+ ✔ Volume stack-institucional_db_data  Created
+ ✔ Network stack-institucional_front   Created
+ ✔ Container stack-institucional-api-1 Started
+ ✔ Container stack-institucional-db-1  Started
+ ✔ Container stack-institucional-web-1 Started
+```
+---
+
+## 23. Verificación de PostgreSQL
+
+<p style="text-align: justify;">
+Comprobamos que PostgreSQL esté disponible y pueda aceptar conexiones utilizando `pg_isready`.
+</p>
+
+```bash
 sudo docker compose exec -T db pg_isready -U app -d institucional
+```
 
+### Resultado
+```text
+/var/run/postgresql:5432 - accepting connections
+```
+
+---
+
+## 24. Verificación de la red de Docker Compose
+
+<p style="text-align: justify;">
+Comprobamos la red creada automáticamente por Docker Compose para el proyecto.
+</p>
+
+```bash
 sudo docker network ls | grep stack-institucional
+```
 
+### Resultado
+
+```text
+cb6af62f3024   stack-institucional_back    bridge    local
+0675340bf040   stack-institucional_front   bridge    local
+```
+
+
+---
+
+## 25. Verificación de volúmenes
+
+<p style="text-align: justify;">
+Consultamos los volúmenes administrados por Docker para verificar la persistencia de los datos.
+</p>
+
+```bash
 sudo docker volume ls
+```
 
-sudo docker compose logs --tail 2
-
-
-
-sudo docker compose stop
-
-sudo docker compose start
-
-sudo docker compose down 
-
-verificar puertos 
-
-sudo docker ps --format "table {{.Names}}   {{.Ports}}"
-
-sudo docker volume ls | grep db_data
+```text
+DRIVER    VOLUME NAME
+local     mini-soc_datos_redis
 local     stack-institucional_db_data
+local     vol-portal
+```
 
+---
 
-creamos el registry local 
+## 26. Consulta de logs
 
+<p style="text-align: justify;">
+Consultamos las últimas líneas de los logs de los servicios definidos en Docker Compose.
+</p>
+
+```bash
+sudo docker compose logs --tail 2
+```
+
+---
+
+## 27. Administración del stack
+
+### Detener los servicios
+
+```bash
+sudo docker compose stop
+```
+
+El comando detiene los contenedores sin eliminarlos.
+
+### Iniciar nuevamente los servicios
+
+```bash
+sudo docker compose start
+```
+
+El comando inicia nuevamente los contenedores que habían sido detenidos.
+
+### Detener y eliminar el stack
+
+```bash
+sudo docker compose down
+```
+El comando detiene y elimina los contenedores y redes creados por el proyecto.
+
+---
+
+## 28. Verificación de puertos
+
+<p style="text-align: justify;">
+Mostramos los contenedores activos junto con los puertos publicados en el servidor.
+</p>
+
+```bash
+sudo docker ps --format "table {{.Names}}   {{.Ports}}"
+```
+### Resultado
+```text
+NAMES   PORTS
+stack-institucional-web-1   0.0.0.0:8082->80/tcp, [::]:8082->80/tcp
+stack-institucional-db-1   5432/tcp
+stack-institucional-api-1   0.0.0.0:5002->5000/tcp, [::]:5002->5000/tcp
+api-institucional-demo   0.0.0.0:5001->5000/tcp, [::]:5001->5000/tcp
+```
+
+---
+
+## 29. Verificación del volumen de PostgreSQL
+
+```bash
+sudo docker volume ls | grep db_data
+```
+
+### Resultado
+
+```text
+local     stack-institucional_db_data
+```
+
+El volumen permite conservar los datos de PostgreSQL aunque los contenedores sean detenidos o recreados.
+
+---
+
+# 30. Creación de un Registry Docker local
+
+<p style="text-align: justify;">
+Creamos un registro privado local para almacenar imágenes Docker dentro del entorno del laboratorio.
+</p>
+
+## Verificación de las interfaces de red
+
+```bash
 ip -br addr
+```
+
+### Resultado
+
+```text
 lo               UNKNOWN        127.0.0.1/8 ::1/128
 enp0s3           UP             172.25.4.80/24 fe80::a00:27ff:fea1:a2cb/64
 docker0          UP             172.17.0.1/16 fe80::8c86:6cff:feaa:3a6d/64
@@ -606,12 +809,28 @@ veth257aa32@if2  UP             fe80::40b2:70ff:fe8f:10ab/64
 vethed838be@if2  UP             fe80::c47a:cfff:fec8:f705/64
 vethbee2e22@if3  UP             fe80::2882:aaff:fed3:b280/64
 vethac30287@if2  UP             fe80::1cf3:28ff:fe1a:a77f/64
+```
 
+Definimos la dirección IP del servidor como variable de entorno:
 
+```bash
 export REGISTRY_HOST=172.25.4.80
+```
 
+Verificamos la variable:
+
+```bash
 echo $REGISTRY_HOST
+```
+### Resultado
+
+```text
 172.25.4.80
+```
+
+---
+
+
 
 docker rm -f registry-local 2>/dev/null || true
 true
