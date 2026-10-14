@@ -1,2 +1,665 @@
 # Unidad 3 - Automatizacion DevOps con Jenkins
 
+## Instación Jenkins
+
+Comprobar el estado actual del servidor
+
+adminepn@svr-devops01:~$ hostnamectl
+ Static hostname: svr-devops01
+       Icon name: computer-vm
+         Chassis: vm 🖴
+      Machine ID: b569804ece59442896212539cece95f2
+         Boot ID: 3b8128ae361b4fdb82bab698c9bf1b7f
+  Virtualization: oracle
+Operating System: Ubuntu 26.04.1 LTS
+          Kernel: Linux 7.0.0-38-generic
+    Architecture: x86-64
+ Hardware Vendor: innotek GmbH
+  Hardware Model: VirtualBox
+Hardware Version: 1.2
+Firmware Version: VirtualBox
+   Firmware Date: Fri 2006-12-01
+    Firmware Age: 19y 10month 1w 4d
+
+
+adminepn@svr-devops01:~$ lsb_release -a
+No LSB modules are available.
+Distributor ID: Ubuntu
+Description:    Ubuntu 26.04.1 LTS
+Release:        26.04
+Codename:       resolute
+
+
+adminepn@svr-devops01:~$ free -m
+               total        used        free      shared  buff/cache   available
+Mem:            7424         890        3570          16        3274        6533
+Swap:           4095           0        4095
+
+adminepn@svr-devops01:~$ htop
+
+adminepn@svr-devops01:~$ df -h
+Filesystem                         Size  Used Avail Use% Mounted on
+tmpfs                              1,5G  1,9M  1,5G   1% /run
+/dev/mapper/ubuntu--vg-ubuntu--lv   29G  9,8G   18G  37% /
+tmpfs                              3,7G     0  3,7G   0% /dev/shm
+tmpfs                              3,7G     0  3,7G   0% /tmp
+/dev/sda2                          2,0G  183M  1,7G  11% /boot
+none                               1,0M     0  1,0M   0% /run/credentials/getty@tty1.service
+tmpfs                              743M  8,0K  743M   1% /run/user/1000
+none                               1,0M     0  1,0M   0% /run/credentials/systemd-journald.service
+none                               1,0M     0  1,0M   0% /run/credentials/systemd-networkd.service
+none                               1,0M     0  1,0M   0% /run/credentials/systemd-resolved.service
+
+adminepn@svr-devops01:~$ hostnamectl | grep -E "Static hostname|Operating System|Architecture"
+ Static hostname: svr-devops01
+Operating System: Ubuntu 26.04.1 LTS
+    Architecture: x86-64
+
+
+# Para ver donde esta el docker
+
+adminepn@svr-devops01:~$ command -v docker || true
+/usr/bin/docker
+
+$ sudo systemctl is-active docker
+active
+
+adminepn@svr-devops01:~$ sudo docker version
+Client: Docker Engine - Community
+ Version:           29.8.2
+ API version:       1.56
+ Go version:        go1.26.8
+ Git commit:        7fc2dff
+ Built:             Wed Sep 30 19:32:32 2026
+ OS/Arch:           linux/amd64
+ Context:           default
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          29.8.2
+  API version:      1.56 (minimum version 1.40)
+  Go version:       go1.26.8
+  Git commit:       8af9fe3
+  Built:            Wed Sep 30 19:32:32 2026
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          v2.3.6
+  GitCommit:        ee2735368117d2eb259779949d5e75cdafec9761
+ runc:
+  Version:          1.5.1
+  GitCommit:        v1.5.1-0-g8f2685a4
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+
+$ command -v git || true
+/usr/bin/git
+
+
+
+adminepn@svr-devops01:~$ git --version
+git version 2.53.0
+
+adminepn@svr-devops01:~$ sudo docker info
+Client: Docker Engine - Community
+ Version:    29.8.2
+ Context:    default
+ Debug Mode: false
+...
+
+adminepn@svr-devops01:~$ sudo docker info --format "{{.ServerVersion}}"
+29.8.2
+
+
+adminepn@svr-devops01:~$ sudo systemctl status docker
+● docker.service - Docker Application Container Engine
+     Loaded: loaded (/usr/lib/systemd/system/docker.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 16:34:23 -05; 3 days ago
+ Invocation: 4ca54055db8e4617bbecfad9f5a5c39f
+TriggeredBy: ● docker.socket
+       Docs: https://docs.docker.com
+   Main PID: 115797 (dockerd)
+      Tasks: 118
+     Memory: 65.3M (peak: 68.2M)
+        CPU: 1h 4min 17.452s
+     CGroup: /system.slice/docker.service
+             ├─115797 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+             ├─116040 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 5000 -container-ip 1>
+             ├─116047 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 5000 -container-ip 172.17>
+             ├─116066 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 8082 -container-ip 1>
+             ├─116074 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 8082 -container-ip 192.16>
+             ├─116090 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 5002 -container-ip 1>
+             ├─116098 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 5002 -container-ip 192.16>
+             ├─116120 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 5004 -container-ip 1>
+             ├─116126 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 5004 -container-ip 172.17>
+             ├─116146 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 8081 -container-ip 1>
+             ├─116154 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 8081 -container-ip 172.17>
+             └─226881 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 8080 -container-ip 1>
+
+oct 12 12:53:12 svr-devops01 dockerd[115797]: time="2026-10-12T12:53:11.856819483-05:00" level=warning >
+oct 12 12:53:12 svr-devops01 dockerd[115797]: time="2026-10-12T12:53:11.856904794-05:00" level=warning >
+oct 12 12:53:12 svr-devops01 dockerd[115797]: time="2026-10-12T12:53:11.857245421-05:00" level=warning >
+oct 12 12:53:12 svr-devops01 dockerd[115797]: time="2026-10-12T12:53:11.858755859-05:00" level=warning >
+oct 12 12:53:12 svr-devops01 dockerd[115797]: time="2026-10-12T12:53:11.887659536-05:00" level=error
+
+Los 30 ultimas lineas del log
+
+adminepn@svr-devops01:~$ sudo journalctl -u docker -n 30
+oct 10 19:13:31 svr-devops01 dockerd[115797]: time="2026-10-10T19:13:31.571544348-05:00" level=error msg="copy stream failed" error="reading from a closed fifo" strea>
+oct 10 23:01:21 svr-devops01 dockerd[115797]: time="2026-10-10T23:01:21.680626036-05:00" level=warning msg="Health check for container cdd275b46320b38e087365dea5d43a6>
+oct 10 23:01:21 svr-devops01 dockerd[115797]: time="2026-10-10T23:01:21.681003272-05:00" level=warning msg="Health check for container c6119a5d9c3fafe85a0e8118c81cefd>
+oct 10 23:01:21 svr-devops01 dockerd[115797]: time="2026-10-10T23:01:21.681328258-05:00" level=warning msg="Health check for container 64aa44858cffc693dcc1043ecb412c7>
+
+
+Conexion entre servidores
+
+ping 172.25.4.81
+PING 172.25.4.81 (172.25.4.81) 56(84) bytes of data.
+64 bytes from 172.25.4.81: icmp_seq=1 ttl=64 time=2.94 ms
+
+Revisamos los hosts
+
+$ getent hosts srv-node02
+
+Como no sale nada aumentamos los hosts
+
+$ sudo vim /etc/hosts
+
+# Plataforma DevOps EPN - DMQ - Unidad 1
+
+172.25.4.80     svr-devops01
+172.25.4.81     srv-node02
+
+
+
+Git se comporta con 5 seg de algo
+
+
+$ ssh -o ConnectTimeout=5 srv-node02 hostname
+The authenticity of host 'srv-node02 (172.25.4.81)' can't be established.
+ED25519 key fingerprint is: SHA256:AsqnmV5qx7Epeyg7R5jWqFaPUdPru4HaXYwdJOIpTiw
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'srv-node02' (ED25519) to the list of known hosts.
+adminepn@srv-node02's password:
+srv-node02
+
+
+$ ssh -o ConnectTimeout=5 svr-devops01 hostname
+The authenticity of host 'svr-devops01 (172.25.4.80)' can't be established.
+ED25519 key fingerprint is: SHA256:N51UpQMcXpWxlI86TIcpRuCLrjCqcNpPzAxgEwqh854
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'svr-devops01' (ED25519) to the list of known hosts.
+adminepn@svr-devops01's password:
+svr-devops01
+adminepn@srv-node02:~$
+
+Creamos la carpeta en el servidor 1
+
+mkdir -p "$HOME/unidad3"
+
+adminepn@svr-devops01:~$ mkdir -p "$HOME/unidad3"
+adminepn@svr-devops01:~$ echo $HOME
+/home/adminepn
+adminepn@svr-devops01:~$ ls
+Laboratorio_Docker.zip  U1_CarpioByron  history.txt  u2-docker  unidad3
+adminepn@svr-devops01:~$
+
+Verificar que este instalado
+
+$ sudo apt install -y git curl ca-certificates python3 openssh-client nano vim
+
+$ git --version && curl --version | head -n 1
+
+
+$ dkpg -l jenkins 2> /dev/null | tail -n 4 || true
+
+$ sudo apt install -y fontconfig openjdk-21-jre
+
+$ systemctl is-active jenkins
+inactive
+
+$ java --version
+openjdk 21.0.12.1 2026-08-18
+OpenJDK Runtime Environment (build 21.0.12.1+1-1-26.04.4-Ubuntu)
+OpenJDK 64-Bit Server VM (build 21.0.12.1+1-1-26.04.4-Ubuntu, mixed mode, sharing)
+adminepn@svr-devops01:~$
+
+
+$ apt-cache policy openjdk-21-jre | head -n 15
+openjdk-21-jre:
+  Instalados: 21.0.12.1+1-1~26.04.4
+  Candidato:  21.0.12.1+1-1~26.04.4
+  Tabla de versión:
+ *** 21.0.12.1+1-1~26.04.4 500
+        500 http://ec.archive.ubuntu.com/ubuntu resolute-updates/universe amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/universe amd64 Packages
+        100 /var/lib/dpkg/status
+     21.0.11~8ea-1 500
+        500 http://ec.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+adminepn@svr-devops01:~$
+
+$ sudo install -d -m 0755 /etc/apt/keyrings
+
+$ sudo curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key -o /etc/apt/keyrings/jenkins.keyring.asc
+
+
+$ getent hosts pkg.jenkins.io
+2a04:4e42::645  dualstack.d.sni.global.fastly.net pkg.jenkins.io
+2a04:4e42:200::645 dualstack.d.sni.global.fastly.net pkg.jenkins.io
+2a04:4e42:400::645 dualstack.d.sni.global.fastly.net pkg.jenkins.io
+2a04:4e42:600::645 dualstack.d.sni.global.fastly.net pkg.jenkins.io
+adminepn@svr-devops01:/etc/apt/keyrings$
+adminepn@svr-devops01:/etc/apt/keyrings$ curl -I --max-time 10 https://pkg.jenkins.io/debian-stable/
+
+HTTP/2 200
+content-type: text/html
+last-modified: Wed, 30 Sep 2026 08:51:56 GMT
+etag: "6abccdac-14d7"
+x-content-type-options: nosniff
+x-frame-options: DENY
+accept-ranges: bytes
+date: Tue, 13 Oct 2026 22:14:33 GMT
+via: 1.1 varnish
+age: 0
+x-served-by: cache-bog-skbo2340027-BOG
+x-cache: MISS
+x-cache-hits: 0
+x-timer: S1791929674.688563,VS0,VE300
+vary: Accept-Encoding
+strict-transport-security: max-age=300
+content-length: 5335
+
+
+$ echo "deb [signed-by=/etc/apt/keyrings/jenkins.keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list
+deb [signed-by=/etc/apt/keyrings/jenkins.keyring.asc] https://pkg.jenkins.io/debian-stable binary/
+adminepn@svr-devops01:/etc/apt/keyrings$
+
+$ sudo apt update
+
+adminepn@svr-devops01:/etc/apt/keyrings$ apt-cache policy jenkins | head -n 15
+jenkins:
+  Instalados: (ninguno)
+  Candidato:  2.580.1
+  Tabla de versión:
+     2.580.1 500
+        500 https://pkg.jenkins.io/debian-stable binary/ Packages
+     2.568.3 500
+        500 https://pkg.jenkins.io/debian-stable binary/ Packages
+     2.568.2 500
+        500 https://pkg.jenkins.io/debian-stable binary/ Packages
+     2.568.1 500
+        500 https://pkg.jenkins.io/debian-stable binary/ Packages
+     2.555.3 500
+        500 https://pkg.jenkins.io/debian-stable binary/ Packages
+     2.555.2 500
+
+
+$ sudo apt install jenkins
+
+$ reboot
+
+
+
+$ sudo systemctl enable --now jenkins
+Synchronizing state of jenkins.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable jenkins
+
+
+$ systemctl is-active jenkins
+active
+
+$ sudo ss -lntp | grep 8080
+LISTEN 0      50                 *:8080            *:*    users:(("java",pid=1098,fd=9))
+
+
+$ sudo journalctl -u jenkins -n 60
+oct 13 17:18:14 svr-devops01 systemd[1]: Failed to start jenkins.service - Jenkins >
+oct 13 17:18:14 svr-devops01 systemd[1]: jenkins.service: Consumed 2.127s CPU time >
+oct 13 17:18:14 svr-devops01 systemd[1]: jenkins.service: Scheduled restart job, re>
+
+######## 13 oct
+
+$ sudo ufw status verbose
+
+hostname -I
+curl -I --max-time http://172.0.0.1:8080/login
+
+Archivo de credenciales
+
+ls -la /var/lib/jenkins/secrets
+
+$ sudo more /var/lib/jenkins/secrets/initialAdminPassword
+
+$ sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+d9df6a4ef3754ef9a362c5b2b8839e1b
+adminepn@svr-devops01:~$ id jenkins
+uid=104(jenkins) gid=107(jenkins) groups=107(jenkins)
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo systemctl cat jenkins | head -n 55
+# /usr/lib/systemd/system/jenkins.service
+#
+# This file is managed by systemd(1). Do NOT edit this file manually!
+# To override these settings, run:
+#
+
+
+
+
+## Datos Jenkins
+
+http://172.25.4.80:8080/
+
+usuario
+
+
+Usuario: adminepn
+Contraseña: adminepn
+Nombre completo: adminepn
+Email: byron.carpio@quito.gob.ec
+
+
+Nos indica que hay q actualizar el java
+
+$ java --version
+openjdk 21.0.12.1 2026-08-18
+OpenJDK Runtime Environment (build 21.0.12.1+1-1-26.04.4-Ubuntu)
+OpenJDK 64-Bit Server VM (build 21.0.12.1+1-1-26.04.4-Ubuntu, mixed mode, sharing)
+
+
+$ cat /etc/os-release
+PRETTY_NAME="Ubuntu 26.04.1 LTS"
+NAME="Ubuntu"
+VERSION_ID="26.04"
+VERSION="26.04.1 LTS (Resolute Raccoon)"
+VERSION_CODENAME=resolute
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=resolute
+LOGO=ubuntu-logo
+
+
+$ dpkg-query -W -f='${Version}\n' jenkins
+2.580.1
+
+$ apt-cache policy jenkins
+jenkins:
+  Instalados: 2.580.1
+  Candidato:  2.580.1
+  Tabla de versión:
+ *** 2.580.1 500
+        500 https://pkg.jenkins.io/debian-stable binary/ Packages
+        100 /var/lib/dpkg/status
+
+
+~$ PID=$(systemctl show -p MainPID --value jenkins)
+adminepn@svr-devops01:~$ echo $PID
+1098
+
+
+$ sudo readlink -f "/proc/$PID/exe"
+/usr/lib/jvm/java-21-openjdk-amd64/bin/java
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ JENKINS_HOME_DIR=/var/lib/jenkins
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ STAMP=$(date +%Y%m%d-%H%M%S)
+adminepn@svr-devops01:~$
+
+
+Sacamos un respaldo
+
+$ echo $(date +%Y%m%d-%H%M%S)
+20261013-173728
+
+$ BACKUP_DIR="/var/backups/jenkins-java25/$STAMP"
+
+
+$ sudo install -d -m 0777 "$BACKUP_DIR"
+adminepn@svr-devops01:~$ ls -la /var/backups/jenkins-java25/$STAMP
+total 8
+drwxrwxrwx 2 root root 4096 Oct 13 17:38 .
+drwxr-xr-x 3 root root 4096 Oct 13 17:38 ..
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo ls -la /var/backups/jenkins-java25/
+total 12
+drwxr-xr-x 3 root root 4096 Oct 13 17:38 .
+drwxr-xr-x 3 root root 4096 Oct 13 17:38 ..
+drwxrwxrwx 2 root root 4096 Oct 13 17:38 20261013-173651
+
+
+adminepn@svr-devops01:~$ df -h "$JENKINS_HOME_DIR" "$BACKUP_DIR"
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv   29G   11G   17G  39% /
+/dev/mapper/ubuntu--vg-ubuntu--lv   29G   11G   17G  39% /
+adminepn@svr-devops01:~$
+
+adminepn@svr-devops01:~$ sudo systemctl stop jenkins
+adminepn@svr-devops01:~$ sudo systemctl is-active jenkins
+inactive
+
+adminepn@svr-devops01:~$ sudo tar --acls --xattrs --numeric-owner \                 --exclude='./secrets/master.key' \
+-czpf "$BACKUP_DIR/jenkins-home.tar.gz" \
+-C "$JENKINS_HOME_DIR" .
+
+$ sudo install -m 0600 -o root -g root \
+"$JENKINS_HOME_DIR/secrets/master.key" \
+"/root/jenkins-master-${STAMP}.key"
+
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo install -m 0600 -o root -g root \
+  "$JENKINS_HOME_DIR/secrets/master.key" \
+  "/root/jenkins-master-${STAMP}.key"
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo ls /root/
+jenkins-master-20261013-173651.key  snap
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo ls -la /var/backups/jenkins-java25/20261013-173651/jenkins-home.tar.gz
+-rw-r--r-- 1 root root 147016696 Oct 13 17:41 /var/backups/jenkins-java25/20261013-173651/jenkins-home.tar.gz
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo systemctl cat jenkins |
+  sudo tee "$BACKUP_DIR/jenkins-systemd.txt" >/dev/null
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ dpkg-query -W -f='${Version}\n' jenkins |
+  sudo tee "$BACKUP_DIR/jenkins-version.txt" >/dev/null
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo tar -tzf "$BACKUP_DIR/jenkins-home.tar.gz" | head
+./
+./jenkins.model.JenkinsLocationConfiguration.xml
+./queue.xml
+./.lastStarted
+./secret.key.not-so-secret
+./.groovy/
+./.groovy/grapes/
+./secret.key
+./jenkins.install.InstallUtil.lastExecVersion
+./jenkins.install.UpgradeWizard.state
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo apt-get -s install --only-upgrade jenkins
+Leyendo lista de paquetes... Hecho
+Creando árbol de dependencias... Hecho
+Leyendo la información del estado... Hecho
+jenkins ya está en su versión más reciente (2.580.1).
+Resolviendo dependencias... Hecho
+El paquete indicado a continuación se instaló de forma automática y ya no es necesario:
+  networkd-dispatcher
+Utilice «sudo apt autoremove» para eliminarlo.
+0 actualizados, 0 nuevos se instalarán, 0 para eliminar y 0 no actualizados.
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo apt-get install -y ca-certificates wget gpg
+Leyendo lista de paquetes... Hecho
+Creando árbol de dependencias... Hecho
+Leyendo la información del estado... Hecho
+ca-certificates ya está en su versión más reciente (20260601~26.04.1).
+wget ya está en su versión más reciente (1.25.0-2ubuntu4.4).
+fijado wget como instalado manualmente.
+gpg ya está en su versión más reciente (2.4.8-4ubuntu3.1).
+fijado gpg como instalado manualmente.
+Resolviendo dependencias... Hecho
+El paquete indicado a continuación se instaló de forma automática y ya no es necesario:
+  networkd-dispatcher
+Utilice «sudo apt autoremove» para eliminarlo.
+0 actualizados, 0 nuevos se instalarán, 0 para eliminar y 0 no actualizados.
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo install -d -m 0755 /etc/apt/keyrings
+adminepn@svr-devops01:~$
+
+$ wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | sudo tee /etc/apt/keyrings/adoptium.gpg >/dev/null
+adminepn@svr-devops01:~$
+
+
+$ printf 'deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb %s main\n' "$VERSION_CODENAME" | sudo tee /etc/apt/sources.list.d/adoptium.list
+deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb  main
+adminepn@svr-devops01:~$
+
+
+
+
+corregido
+
+adminepn@svr-devops01:~$ sudo systemctl cat jenkins |
+> sudo tee "$BACKUP_DIR/jenkins-systemd.txt" >/dev/null
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ dpkg-query -W -f='${Version}\n' jenkins |
+sudo tee "$BACKUP_DIR/jenkins-systemd.txt" >/dev/null
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo systemctl start jenkins
+adminepn@svr-devops01:~$ sudo apt get update
+Error: Operación inválida: get
+adminepn@svr-devops01:~$ sudo apt-get update
+Obj:1 https://download.docker.com/linux/ubuntu resolute InRelease
+Ign:2 https://pkg.jenkins.io/debian-stable binary/ InRelease
+Obj:3 https://pkg.jenkins.io/debian-stable binary/ Release
+Obj:5 http://ec.archive.ubuntu.com/ubuntu resolute InRelease
+Obj:6 http://security.ubuntu.com/ubuntu resolute-security InRelease
+Obj:7 http://ec.archive.ubuntu.com/ubuntu resolute-updates InRelease
+Obj:8 http://ec.archive.ubuntu.com/ubuntu resolute-backports InRelease
+Des:9 https://packages.adoptium.net/artifactory/deb resolute InRelease [7.507 B]
+Des:10 https://packages.adoptium.net/artifactory/deb resolute/main amd64 Packages [5.075 B]
+Descargados 12,6 kB en 2s (8.082 B/s)
+Leyendo lista de paquetes... Hecho
+
+
+adminepn@svr-devops01:~$ sudo apt-get -s install --only-upgrade jenkins
+
+adminepn@svr-devops01:~$ sudo apt-get install ca-certificates wget gpg
+
+
+adminepn@svr-devops01:~$ sudo install -d -m 0755 /etc/apt/keyrings/
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ wget -qO - \
+> https://packages.adoptium.net/artifactory/api/gpg/key/public \
+> | gpg --dearmor \
+> | sudo tee /etc/apt/keyrings/adoptium.gpg > /dev/null
+
+
+adminepn@svr-devops01:~$ sudo chmod 0644 /etc/apt/keyrings/adoptium.gpg
+
+. /etc/os-release
+
+printf 'deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb %s main\n' "$VERSION_CODENAME" \
+> | sudo tee /etc/apt/sources.list.d/adoptium.list
+
+$ sudo apt-get update
+Obj:1 https://download.docker.com/linux/ubuntu resolute InRelease
+Ign:2 https://pkg.jenkins.io/debian-stable binary/ InRelease
+Obj:3 https://pkg.jenkins.io/debian-stable binary/ Release
+Obj:4 http://ec.archive.ubuntu.com/ubuntu resolute InRelease
+Obj:6 http://security.ubuntu.com/ubuntu resolute-security InRelease
+Obj:7 http://ec.archive.ubuntu.com/ubuntu resolute-updates InRelease
+Obj:8 http://ec.archive.ubuntu.com/ubuntu resolute-backports InRelease
+Des:9 https://packages.adoptium.net/artifactory/deb resolute InRelease [7.507 B]
+Des:10 https://packages.adoptium.net/artifactory/deb resolute/main amd64 Packages [5.075 B]
+Descargados 12,6 kB en 2s (7.977 B/s)
+Leyendo lista de paquetes... Hecho
+adminepn@svr-devops01:~$ apt-cache policy temurin-25-jdk
+temurin-25-jdk:
+  Instalados: (ninguno)
+  Candidato:  25.0.4.1.0+1-0
+  Tabla de versión:
+     25.0.4.1.0+1-0 500
+        500 https://packages.adoptium.net/artifactory/deb resolute/main amd64 Packages
+     25.0.4.0.0+7-0 500
+        500 https://packages.adoptium.net/artifactory/deb resolute/main amd64 Packages
+     25.0.3.0.0+9-1 500
+        500 https://packages.adoptium.net/artifactory/deb resolute/main amd64 Packages
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$
+
+
+adminepn@svr-devops01:~$ sudo apt-get install temurin-25-jdk
+
+
+adminepn@svr-devops01:~$ dpkg -L temurin-25-jdk | grep '/bin/java$'
+/usr/lib/jvm/temurin-25-jdk-amd64/bin/java
+
+:~$ /usr/lib/jvm/temurin-25-jdk-amd64/bin/java -version
+openjdk version "25.0.4.1" 2026-08-18 LTS
+OpenJDK Runtime Environment Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS)
+OpenJDK 64-Bit Server VM Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS, mixed mode, sharing)
+
+adminepn@svr-devops01:~$ sudo systemctl edit jenkins.service
+
+
+[Service]
+Enviroment="JENKINS_JAVA_CMD=/usr/lib/jvm/temurin-25-jdk-amd64/bin/java"
+
+
+adminepn@svr-devops01:~$ sudo mkdir -p /etc/systemd/system/jenkins.service.d
+adminepn@svr-devops01:~$ sudo tee /etc/systemd/system/jenkins.service.d/90-java25.conf > /dev/null <<'EOF'
+> [Service]
+Enviroment="JENKINS_JAVA_CMD=/usr/lib/jvm/temurin-25-jdk-amd64/bin/java"
+> EOF
+adminepn@svr-devops01:~$ sudo systemctl daemon-reload
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$
+adminepn@svr-devops01:~$ sudo systemctl cat jenkins.service
+
+
+
+adminepn@svr-devops01:~$ sudo systemctl show jenkins.service -p Environment
+Environment=JENKINS_HOME=/var/lib/jenkins JENKINS_WEBROOT=/var/cache/jenkins/war JAVA_OPTS=-Djava.awt.headless=true JENKINS_PORT=8080
+adminepn@svr-devops01:~$
+
+adminepn@svr-devops01:~$ sudo systemctl restart jenkins
+
+adminepn@svr-devops01:~$ sudo systemctl status jenkins
+● jenkins.service - Jenkins Continuous Integration Server
+     Loaded: loaded (/usr/lib/systemd/system/jenkins.service; enabled; preset: enabled)
+    Drop-In: /etc/systemd/system/jenkins.service.d
+             └─90-java25.conf
+     Active: active (running) since Wed 2026-10-14 01:12:29 -05; 18s ago
+ Invocation: 9fe3fe1e0b084a37888504292beae81e
+   Main PID: 13236 (java)
+      Tasks: 52 (limit: 6219)
+     Memory: 325.3M (peak: 326M)
+        CPU: 18.670s
+     CGroup: /system.slice/jenkins.service
+             └─13236 /usr/bin/java -Djava.awt.headless=true -jar /usr/share/java/jenkins.war --webroot=/var/cache/jenkins/war --httpPort=8080
+
+oct 14 01:12:28 svr-devops01 jenkins[13236]: 2026-10-14 06:12:28.073+0000 [id=46]        INFO        jenkins.InitReactorRunner$1#onAttained: Started all plugins
+oct 14 01:12:28 svr-devops01 jenkins[13236]: 2026-10-14 06:12:28.075+0000 [id=47]        INFO        jenkins.InitReactorRunner$1#onAttained: Augmented all exte>
+oct 14 01:12:28 svr-devops01 jenkins[13236]: 2026-10-14 06:12:28.591+0000 [id=48]        INFO        h.p.b.g.GlobalTimeOutConfiguration#load: global timeout no>
+oct 14 01:12:29 svr-devops01 jenkins[13236]: 2026-10-14 06:12:29.417+0000 [id=46]        INFO        jenkins.InitReactorRunner$1#onAttained: System config load>
+oct 14 01:12:29 svr-devops01 jenkins[13236]: 2026-10-14 06:12:29.420+0000 [id=46]        INFO        jenkins.InitReactorRunner$1#onAttained: System config adap>
+oct 14 01:12:29 svr-devops01 jenkins[13236]: 2026-10-14 06:12:29.422+0000 [id=48]        INFO        jenkins.InitReactorRunner$1#onAttained: Loaded all jobs
+oct 14 01:12:29 svr-devops01 jenkins[13236]: 2026-10-14 06:12:29.450+0000 [id=50]        INFO        jenkins.InitReactorRunner$1#onAttained: Configuration for >
+oct 14 01:12:29 svr-devops01 jenkins[13236]: 2026-10-14 06:12:29.536+0000 [id=45]        INFO        jenkins.InitReactorRunner$1#onAttained: Completed initiali>
+oct 14 01:12:29 svr-devops01 jenkins[13236]: 2026-10-14 06:12:29.600+0000 [id=37]        INFO        hudson.lifecycle.Lifecycle#onReady: Jenkins is fully up an>
+oct 14 01:12:29 svr-devops01 systemd[1]: Started jenkins.service - Jenkins Continuous Integration Server.
+
+

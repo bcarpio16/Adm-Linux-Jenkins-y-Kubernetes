@@ -831,12 +831,31 @@ echo $REGISTRY_HOST
 ---
 
 
+## 31. Preparación del Registry
 
+<p style="text-align: justify;">
+Eliminamos un contenedor anterior llamado `registry-local`, si existiera. El uso de `|| true` permite continuar aunque el contenedor no exista.
+</p>
+
+```bash
 docker rm -f registry-local 2>/dev/null || true
-true
+```
 
+Creamos el directorio que almacenará los datos del Registry:
+
+```bash
 sudo mkdir -p /srv/docker-registry
+```
+
+Asignamos el propietario:
+
+```bash
 sudo chown root:root /srv/docker-registry
+```
+
+---
+
+
 
 
 sudo docker run -d --name registry-local --restart unless-stopped -p 5000:5000 -v /srv/docker-registry:/var/lib/registry registry:2
