@@ -348,5 +348,110 @@ d13b0c26ffb33a58c89819e6d85ea7b19f80c5f1        refs/heads/main
 
 ### Navegador
 
-![Pagina de Jenkins](imagenes/01-paginajenkins.png))
+![Pagina de Jenkins](imagenes/01_paginajenkins.png))
+
+Vamos a generar una nueva tarea
+
+![Nueva Tarea](imagenes/02_nuevatarea.png))
+
+Elegimos pipeline -> ok
+
+En la ventada general vamos a llenar con los datos 
+
+![General](imagenes/03_generalpipeline.png))
+
+El error que sale se debe crear las claves privadas
+
+
+Verificamos 
+
+adminepn@svr-devops01:~/unidad3/pipeline$ git ls-remote -h -- adminepn@srv-node02:repos/pipeline.git
+adminepn@srv-node02's password:
+d13b0c26ffb33a58c89819e6d85ea7b19f80c5f1        refs/heads/main
+
+
+adminepn@svr-devops01:~/unidad3/pipeline$ git ls-remote -h -- adminepn@srv-node02:repos/pipeline.git HEAD
+adminepn@srv-node02's password:
+adminepn@svr-devops01:~/unidad3/pipeline$
+
+
+adminepn@svr-devops01:~/unidad3/pipeline$ git -C /home/adminepn/unidad3/pipeline/  remote -v
+origin  adminepn@srv-node02:repos/pipeline.git (fetch)
+origin  adminepn@srv-node02:repos/pipeline.git (push)
+adminepn@svr-devops01:~/unidad3/pipeline$
+
+
+adminepn@svr-devops01:~/unidad3/pipeline$ git ls-remote adminepn@srv-node02:repos/pipeline.git ref/heads/main
+adminepn@srv-node02's password:
+adminepn@svr-devops01:~/unidad3/pipeline$
+
+
+adminepn@svr-devops01:~/unidad3/pipeline$ git ls-remote adminepn@srv-node02:repos/pipeline.git ref/heads/main HEAD
+adminepn@srv-node02's password:
+d13b0c26ffb33a58c89819e6d85ea7b19f80c5f1        HEAD
+
+
+Servidor 2
+
+adminepn@srv-node02:~$ git -C repos/pipeline.git rev-parse --is-bare-repository
+true
+
+Creamos el acceso al nodo 1
+
+adminepn@srv-node02:~$ sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+256 SHA256:AsqnmV5qx7Epeyg7R5jWqFaPUdPru4HaXYwdJOIpTiw root@srv-node02 (ED25519)
+
+
+adminepn@svr-devops01:~/unidad3/pipeline$ sudo -u jenkins ssh-keygen \
+> -F srv-node02 \
+> -f /var/lib/jenkins/.ssh/known_hosts
+# Host srv-node02 found: line 2
+srv-node02 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG6C88izEO9LbYLhlqrm2RWzxbD5Frnejnr1nwEWNK7i
+adminepn@svr-devops01:~/unidad3/pipeline$
+
+
+regresamos al administrador
+
+seleccionampos add credencials 
+
+![General](imagenes/04_credenciales.png))
+![General](imagenes/05_user.png))
+
+Seleccionamos y ya funciona
+
+![General](imagenes/06_configurado.png))
+
+Verificamos 
+
+Status --> git logs de consultas --> Builds 
+
+luego de la perioricidad se puede validar la ejecucion
+
+![General](imagenes/07_ejecución.png))
+
+![General](imagenes/08_errorconsola.png))
+
+para esto vamos a revisar 
+
+Servidor 1
+
+adminepn@svr-devops01:~/unidad3/pipeline$ git branch --show-current
+main
+
+adminepn@svr-devops01:~/unidad3/pipeline$ git ls-remote --heads \
+> adminepn@srv-node02:repos/pipeline.git
+adminepn@srv-node02's password:
+d13b0c26ffb33a58c89819e6d85ea7b19f80c5f1        refs/heads/main
+adminepn@svr-devops01:~/unidad3/pipeline$
+
+
+Nos dice q la ruta es main, pero configuramos como master 
+
+debemos modificar 
+
+![General](imagenes/09_modificacion.png))
+
+validarmos 
+
+![General](imagenes/10_ejecucioncorrecta.png))
 
