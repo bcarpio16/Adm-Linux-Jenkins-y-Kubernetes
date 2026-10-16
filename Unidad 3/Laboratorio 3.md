@@ -348,5 +348,5 @@ d13b0c26ffb33a58c89819e6d85ea7b19f80c5f1        refs/heads/main
 
 ### Navegador
 
-![Pagina de Jenkins](imagenes/1-paginajenkins.png)
+![Pagina de Jenkins](imagenes/01-paginajenkins.png))
 
