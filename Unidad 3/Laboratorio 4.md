@@ -6,7 +6,7 @@ adminepn@svr-devops01:~/unidad3/pipeline$ sudo systemctl is-active jenkins
 active
 adminepn@svr-devops01:~/unidad3/pipeline$ sudo -u jenkins git --version
 git version 2.53.0
-
+[Laboratorio 2.md](Laboratorio%202.md)
 adminepn@svr-devops01:~/unidad3/pipeline$ sudo apt-get install -y openssh-server openssh-clien
 Leyendo lista de paquetes... Hecho
 Creando árbol de dependencias... Hecho
